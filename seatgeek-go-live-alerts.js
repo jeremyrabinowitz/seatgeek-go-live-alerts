@@ -38,6 +38,15 @@ function checkForSeatGeekMention(xml) {
     entry.match(/<media:description.*?>(.*?)<\/media:description>/s) ||
     entry.match(/<content.*?>(.*?)<\/content>/s);
 
+  const pubDateMatch = entry.match(/<published>(.*?)<\/published>/);
+  const publishedDate = pubDateMatch ? new Date(pubDateMatch[1]) : null;
+
+  const today = new Date();
+  const isToday = publishedDate &&
+    publishedDate.getDate() === today.getDate() &&
+    publishedDate.getMonth() === today.getMonth() &&
+    publishedDate.getFullYear() === today.getFullYear();
+
   const description = descMatch ? descMatch[1] : "";
   const linkMatch = entry.match(/<link.*?href=\"(.*?)\"/);
   const link = linkMatch ? linkMatch[1] : "";
@@ -45,7 +54,7 @@ function checkForSeatGeekMention(xml) {
   const isMatch = description.toLowerCase().includes("seatgeek");
 
   return {
-    found: isMatch,
+    found: isMatch && isToday,
     link,
     description,
   };
