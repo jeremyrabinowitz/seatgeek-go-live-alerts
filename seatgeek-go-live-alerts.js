@@ -87,17 +87,20 @@ async function markAlertSent(recordId) {
 
 (async () => {
   try {
+    const alertedLinks = new Set();
     const records = await fetchRSSFeedsFromAirtableView();
     for (const record of records) {
       const rss = record.fields["RSS Feed (Influencers)"];
       const brand = record.fields["Brand"];
-      if (!rss || brand !== "SeatGeek") continue;
+      const alreadyAlerted = record.fields["Go-Live Alert Sent"];
+      if (!rss || brand !== "SeatGeek" || alreadyAlerted) continue;
 
       const xml = await fetchRSSFeed(rss);
       const check = checkForSeatGeekMention(xml);
 
-      if (check.found) {
+      if (check.found && !alertedLinks.has(check.link)) {
         await sendSlackAlert(check.link);
+        alertedLinks.add(check.link);
         await markAlertSent(record.id);
       }
     }
